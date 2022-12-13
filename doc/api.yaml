@@ -1,173 +1,669 @@
-openapi: 3.0.0
+openapi: 3.0.3
 info:
-  description: Fontanelle app backend REST APIs
-  title: Fontanelle APIs
+  title: WASAPhoto
+  description: |-
+    Keep in touch with your friends by sharing photos of special moments, thanks to WASAPhoto! You can
+    upload your photos directly from your PC, and they will be visible to everyone following you.
   version: 1.0.0
 servers:
-  - url: http://localhost:3000
-
+- url: localhost:1234
+  
+  
 tags:
-  - name: "List fountains"
-    description: Endpoints for listing fountains
-  - name: "Manage fountains"
-    description: Endpoint for managing fountains
-
+  - name: login
+    description: login operation
+  - name: user
+    description: operations that involves the user
+  - name: post
+    description: operations that involves the post
+  
+#idea di usare bearer al posto di username su ref di flling, fller, like, comm, post per sventare caso di cambio username
 components:
-  responses:
-    BadRequest:
-      description: The request was not compliant with the documentation (eg. missing fields, etc).
+  securitySchemes:
+    bearerId:
+      type: http
+      scheme: bearer
 
-    InternalServerError:
-      description: The server encountered an internal error. Further info in server logs.
-
+  #############PARAMETERS##################
+  
   parameters:
-    FountainID:
+  
+    UserId:
       schema:
-        type: integer
-        example: 1
-        readOnly: true
-      name: id
+        $ref: '#/components/schemas/Username'
+      name: userid
       in: path
       required: true
-      description: Fountain ID
-
+      
+    PostID:
+      schema:
+        $ref: '#/components/schemas/Id'
+      name: postid
+      in: path
+      required: true
+    
+    LikeID:
+      schema:
+        $ref: '#/components/schemas/Username'
+      name: likeid
+      in: path
+      required: true
+    
+    CommentID:
+      schema:
+        $ref: '#/components/schemas/Id'
+      name: commentid
+      in: path
+      required: true
+      
+    FollowerID:
+      schema:
+        $ref: '#/components/schemas/Username'
+      name: followerid
+      in: path
+      required: true
+      
+    FollowingID:
+      schema:
+        $ref: '#/components/schemas/Username'
+      name: followingid
+      in: path
+      required: true
+      
+    BannedID:
+      schema:
+        $ref: '#/components/schemas/Username'
+      name: bannedid
+      in: path
+      required: true
+    
+    PhotoId:
+      schema:
+        $ref: '#/components/schemas/Id'
+      name: photoid
+      in: path
+      required: true
+        
+    
+  
+  ##############RESPONSES##################
+      
+  responses:
+    BadRequest:
+      description: |-
+        The request was not complain with the documentation
+        
+    InternalServerError:
+      description: |-
+        The server encountered an internal error.
+        Further info in server logs.
+  
+  #################OBJECTS################
+        
   schemas:
-    Latitude:
-      description: Location latitude in decimal degrees format.
-      type: number
-      format: float
-      example: 12.34
-      minimum: -90
-      maximum: 90
+  
+    Id:
+      description: singular id
+      type: integer
+      example: 0123456789
+      readOnly: true
+      
+      
+    Username:
+      description: form of the username string 
+      type: string
+      example: mario
+      pattern:  '^.*?$'
+      minLength: 3
+      maxLength: 16
+      
+  
+    User:
+      description: User with his related information
+      type: object
+      properties:
+        username: 
+          $ref: "#/components/schemas/Username"
+          
+        bearer: 
+          $ref: '#/components/schemas/Id'
+          
+        photosCount:
+          description: number of photos posted
+          type: integer
+          example: 45
+                   
+        followingCount:
+          description: number of following account
+          type: integer
+          example: 100
+              
+        followerCount:
+          description: number of followers
+          type: integer
+          example: 100
+        
+        
+        #FORSE RIDONDANTI RIDONDANTI 
+        photoStream:
+          description: list of photos of the account, sorted in reverse cronological order
+          type: array
+          minItems: 0
+          maxItems: 10000
+          items:
+           $ref: "#/components/schemas/Post"
+        
+        followerList:
+          description: the list of followers of the account
+          type: array
+          minItems: 0
+          maxItems: 10000
+          items:
+            $ref: "#/components/schemas/Username"
+ 
+        followingList:
+          description: the list of followed users of the account
+          type: array
+          minItems: 0
+          maxItems: 10000
+          items:
+            $ref: "#/components/schemas/Username"
+          
+        banList:
+          description: the list of banned users
+          type: array
+          minItems: 0
+          maxItems: 10000
+          items:
+            $ref: "#/components/schemas/Username"
+        #FORSE RIDONDANTI RIDONDANTI 
+        
+        
+    Post:
+      description: Information about  a single post
+      type: object
+      properties:
+        id: 
+          $ref: '#/components/schemas/Id'
+         
+        author:
+          $ref: "#/components/schemas/Username"
+          
+        date-time:
+          description: date and time the photo was posted
+          type: string
+          format: date-time
+          example: "2018-03-20T09:12:28Z"
+          
+        #non so se è così che si usano le immagini
+        photo:
+          description: the identifier of the image in the post
+          type: string
+          format: binary
+          
+        likeCount:
+          description: number of likes of a post
+          type: integer
+          example: 10
+          
+        commentCount:
+          description: number of comments of a post
+          type: integer
+          example: 13
+          
+        #FORSE RIDONDANTI RIDONDANTI
+        likeList:
+          description: the list of likes on the photo
+          type: array
+          minItems: 0
+          maxItems: 10000
+          items:
+            $ref: "#/components/schemas/Username"
 
-    Longitude:
-      description: Location longitude in decimal degrees format.
-      type: number
-      format: float
-      example: 56.78
-      minimum: -180
-      maximum: 180
-
-    Fountain:
-      title: Fountain
-      description: "This object represent a single Fountain (\"nasone\")."
+        commentList:
+          description: the list of comments on the photo
+          type: array
+          minItems: 0
+          maxItems: 10000
+          items:
+            $ref: "#/components/schemas/Comment"
+          #FORSE RIDONDANTI RIDONDANTI
+    
+    
+    Comment:
+      description: comment on a photo
       type: object
       properties:
         id:
-          description: Unique fountain identifier.
-          type: integer
-          example: 1
-          readOnly: true
-        status:
-          description: |-
-            Describe the status of the fountain.
-            If it's "good", the fountain is in working condition;
-            if it's "faulty", the fountain is broken.
+          $ref: '#/components/schemas/Id'
+        
+        author: 
+          $ref: "#/components/schemas/Username"
+        
+        text:
+          description: the comment itself
           type: string
-          enum: ["good", "faulty"]
-          example: good
-        latitude: { $ref: "#/components/schemas/Latitude" }
-        longitude: { $ref: "#/components/schemas/Longitude" }
-
+          minLength: 1
+          maxLength: 300
+          example: "omg!!! slayyy girlll"
+  
 paths:
-  /fountains/:
-    get:
-      tags: ["List fountains"]
-      operationId: listFountains
-      summary: Get the list of available fountains
+  /session:
+    post:
+      tags: ["login"]
+      security:
+        - bearerId: []
+      summary: logs user in
       description: |-
-        Return the list of all fountains in the system.
-        If the client specifies a set of coordinates for a point,
-        the list will be sorted by distance from that point
-        and filtered for a range.
-        Optionally, the client can specify a custom range.
-      parameters:
-        - name: latitude
-          in: query
-          required: false
-          description: Latitude for sorting/finding fountains.
-          schema: { $ref: "#/components/schemas/Latitude" }
-        - name: longitude
-          in: query
-          required: false
-          description: Longitude for sorting/finding fountains.
-          schema: { $ref: "#/components/schemas/Longitude" }
-        - name: range
-          in: query
-          required: false
-          description: |-
-            Range for the location filter. Default: 10.
-            If coordinates are not specified, this parameter is ignored.
-          schema:
-            type: number
-            format: float
-            example: 12
-            minimum: 1
-            maximum: 200
+        If the user doesnt exist, it will be created, and an identifier is returned.
+        If the user exists, the user identifier is returned.
+      operationId: doLogin
+      requestBody:
+        description: User details
+        content:
+          application/json:
+            schema: 
+              $ref: "#/components/schemas/Username"
+        required: true
       responses:
-        "200":
-          description: List of fountains
+        "201":
+          description: User log in successful
           content:
             application/json:
               schema:
-                description: List of fountains that matches the request
-                type: array
-                items: { $ref: "#/components/schemas/Fountain" }
-                minItems: 0
-                maxItems: 1000
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
-    post:
-      tags: ["Manage fountains"]
-      operationId: createFountain
-      summary: Create a new fountain
-      description: |-
-        Create a new fountain using the properties in the request body.
-        The server will create a new unique ID, the client can find it
-        in the response.
-      requestBody:
-        content:
-          application/json:
-            schema: { $ref: "#/components/schemas/Fountain" }
-      responses:
-        "201":
-          description: Fountain created successfully
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/Fountain" }
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
-
-  /fountains/{id}:
-    parameters:
-      - $ref: "#/components/parameters/FountainID"
-    put:
-      tags: ["Manage fountains"]
-      operationId: updateFountain
-      summary: Update fountain properties
-      description: |-
-        Replaces all fountains properties with the Fountain specified
-        in the body of the request.
-      requestBody:
-        content:
-          application/json:
-            schema: { $ref: "#/components/schemas/Fountain" }
+                $ref: '#/components/schemas/Id'
+    get:
+      tags: ["user"]
+      security:
+        - bearerId: []
+      operationId: getUserProfile
+      summary: get profile of the user searched
+      description: return profile of the user searched if the logged user was not banned by the searched one
+      parameters:
+      - name: username
+        in: query
+        required: true
+        description: the user searched
+        schema: 
+          $ref: '#/components/schemas/Username'
+      
       responses:
         "200":
-          description: Fountain updated successfully
+          description: user profile accessed
           content:
             application/json:
-              schema: { $ref: "#/components/schemas/Fountain" }
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "404": { description: Fountain not found }
-        "500": { $ref: "#/components/responses/InternalServerError" }
-    delete:
-      tags: ["Manage fountains"]
-      operationId: deleteFountain
-      summary: Remove a fountain
-      description: Remove a fountain from the system.
+              schema: 
+                $ref: '#/components/schemas/User'
+                      
+        "400": 
+          $ref: "#/components/responses/BadRequest" 
+        "404": 
+          description: user not found
+        "500": 
+          $ref: "#/components/responses/InternalServerError"
+    
+
+  /users/{userid}:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    put:
+      tags: ["user"]
+      security:
+        - bearerId: []
+      operationId: setMyUsername
+      summary: update Username
+      description: |-
+        The operation modify the isername not changing the bearer id and verifing if the new Username is already used by another person
+      requestBody:
+        description: new username
+        content:
+          application/json:
+            schema:  
+              $ref: '#/components/schemas/Username'
       responses:
-        "204": { description: Fountain deleted successfully }
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "404": { description: Fountain not found }
-        "500": { $ref: "#/components/responses/InternalServerError" }
+        "200":
+          description: username changed successfully
+          
+        "400": 
+          $ref: "#/components/responses/BadRequest" 
+        "409": 
+          description: username already used
+        "500": 
+          $ref: "#/components/responses/InternalServerError"
+  
+    get:
+      tags: ["user"]
+      security:
+        - bearerId: []
+      operationId: getMyStream
+      summary: return photos of following user 
+      description: return the photos uploaded by the following users if the profile is of the user logged in
+      responses:
+        "200":
+          description: request successfull
+          content:
+            application/json:
+              schema:
+                description: list of post from following users
+                type: array
+                minItems: 0
+                maxItems: 100
+                items: 
+                  $ref: '#/components/schemas/Post'
+              
+        "400": 
+          $ref: "#/components/responses/BadRequest"
+        "500": 
+          $ref: "#/components/responses/InternalServerError"
+  
+  
+  /users/{userid}/posts: 
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    post:
+      tags: ["post"]
+      security:
+        - bearerId: []
+      operationId: uploadPhoto
+      summary: upload a photo
+      description: |-
+        create a post with the photo uploaded
+      requestBody:
+        description: the photo that is going to be posted
+        content:
+          multipart/form-data:
+            schema: 
+              description: the photo to upload
+              type: string
+              format: binary
+      responses:
+        "201":
+          description: post uploaded successfully
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/Post'
+        "400": 
+          $ref: "#/components/responses/BadRequest"
+        "500": 
+          $ref: "#/components/responses/InternalServerError"
+
+      
+  /photos/{photoid}:
+    parameters:
+      - $ref: "#/components/parameters/PhotoId"
+    get:
+      tags: ["photo"]
+      security:
+        - bearerId: []
+      operationId: getRawPhoto
+      summary: get the raw photo of a post
+      description: get the raw image of a photo
+      responses:
+        '200':
+          description: Requested image
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+  
+  /users/{userid}/posts/{postid}:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+      - $ref: "#/components/parameters/PostID"
+    delete:
+      tags: ["post"]
+      security:
+        - bearerId: []
+      operationId: deletePhoto
+      summary: delete the photo
+      description: delete the photo, likes and comments related to the post if the person logged in is the one who posted the photo
+      responses:
+        "204":
+          description: photo deleted successfully
+        "400":  
+          $ref: "#/components/responses/BadRequest" 
+        "401": 
+          description: permission denied
+        "404":
+          description: photo not found
+        "500": 
+          $ref: "#/components/responses/InternalServerError" 
+    
+    
+    
+  /users/{userid}/posts/{postid}/likes:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+      - $ref: "#/components/parameters/PostID"
+      
+    put:
+      tags: ["post"]
+      security:
+        - bearerId: []
+      operationId: likePhoto
+      summary: likes the photo
+      description: likes the photo if the user liking it the user logged in the session didnt already and generate a new like object related to the user logged
+      responses:
+        "200": 
+          description: photo liked sucessfully
+        "400": 
+          $ref: "#/components/responses/BadRequest"
+        
+        #NON SO SE è NECESSARIO
+        #"401":
+        #  description: photo already liked
+          
+        "404":
+          description: photo not found
+        "500":  
+          $ref: "#/components/responses/InternalServerError" 
+        
+  /users/{userid}/posts/{postid}/likes/{likeid}:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+      - $ref: "#/components/parameters/PostID"
+      - $ref: "#/components/parameters/LikeID"
+      
+    delete:
+      tags: ["post"]
+      security:
+        - bearerId: []
+      operationId: unlikePhoto
+      summary: unlike the photo
+      description: Unlike the photo only if the person logged in is the author of the like
+      responses:
+        "204":
+          description: like deleted successfully
+        "400":  
+          $ref: "#/components/responses/BadRequest" 
+        "401": 
+          description: permission denied
+        "404":
+          description: like not found
+        "500":  
+          $ref: "#/components/responses/InternalServerError" 
+        
+    
+  /users/{userid}/posts/{postid}/comments:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+      - $ref: "#/components/parameters/PostID"
+      
+    post:
+      tags: ["post"]
+      security:
+        - bearerId: []
+      operationId: commentPhoto
+      summary: comments the photo
+      description: comment the photo as the user logged in
+        and generate a commentid
+      responses:
+        "201": 
+          description: photo commented sucessfully
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/Comment'
+              
+        "400":  
+          $ref: "#/components/responses/BadRequest" 
+          
+        "404":
+          description: photo not found
+          
+        "500": 
+          $ref: "#/components/responses/InternalServerError" 
+    
+  /users/{userid}/posts/{postid}/comments/{commentid}:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+      - $ref: "#/components/parameters/PostID"
+      - $ref: "#/components/parameters/CommentID"
+      
+    delete:
+      tags: ["post"]
+      security:
+        - bearerId: []
+      operationId: uncommentPhoto
+      summary: delete comment on a photo
+      description: delete comment only if the person logged in is the author of the comment
+      responses:
+        "204":
+          description: comment deleted successfully
+        "400": 
+          $ref: "#/components/responses/BadRequest" 
+        "401": 
+          description: permission denied
+        "404":
+          description: comment not found
+        "500":  
+          $ref: "#/components/responses/InternalServerError"
+    
+  /users/{userid}/followers:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    put:
+      tags: ["user"]
+      security:
+        - bearerId: []
+      operationId: followUser
+      summary: follow a user
+      description: the user logged in is added to the follower list of the user given if he is not already followed and his following list is updated too, adding the visited user to it
+      responses:
+        "200": 
+          description: user followed sucessfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Username'
+
+        "400": 
+          $ref: "#/components/responses/BadRequest"
+          
+        "404":
+          description: user not found
+          
+        "500": 
+          $ref: "#/components/responses/InternalServerError" 
+      
+      
+  /users/{userid}/followers/{followerid}:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+      - $ref: "#/components/parameters/FollowerID"
+    
+    delete:
+      tags: ["user"]
+      security:
+        - bearerId: []
+      operationId: unfollowUser
+      summary: remove follow on the user profile
+      description: remove follow if follower is the user logged
+      
+      responses:
+        "204":
+          description: user unfollowed successfully
+        "400": 
+          $ref: "#/components/responses/BadRequest" 
+        "401": 
+          description: permission denied
+        "404":
+          description: user not found
+        "500": 
+          $ref: "#/components/responses/InternalServerError" 
+    
+  
+  /users/{userid}/following:
+    parameters:
+      - $ref: "#/components/parameters/UserId" 
+    
+  
+  /users/{userid}/following/{followingid}:
+    parameters:
+      - $ref: "#/components/parameters/UserId" 
+      - $ref: "#/components/parameters/FollowingID" 
+      
+        
+  /users/{userid}/banlist:
+    parameters:
+      - $ref: "#/components/parameters/UserId" 
+    
+    put:
+      tags: ["user"]
+      security:
+        - bearerId: []
+      operationId: banUser
+      summary: ban a user
+      description: add a user to the ban list, dening him the access to his profile and deleting himself from banned user following list and him from his followers if present
+      requestBody:
+        description: username to ban
+        content:
+          application/json:
+            schema: 
+              $ref: '#/components/schemas/Username'
+            
+      responses:
+        "200":
+          description: user banned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Username'
+
+        "400": 
+          $ref: "#/components/responses/BadRequest" 
+        "401": 
+          description: username already banned
+        "404":
+          description: user not found
+        "500": 
+          $ref: "#/components/responses/InternalServerError"
+        
+  
+  /users/{userid}/banlist/{bannedid}:
+    parameters:
+
+      - $ref: "#/components/parameters/UserId" 
+      - $ref: "#/components/parameters/BannedID"
+    
+    delete:
+      tags: ["user"]
+      security:
+        - bearerId: []
+      operationId: unbanUser
+      summary: remove user from banlist
+      description: remove user from banlist if the banlist is owened by the user logged
+      responses:
+        "204":
+          description: user unbanned successfully
+        "400": 
+          $ref: "#/components/responses/BadRequest"
+        "401": 
+          description: permission denied
+        "404":
+          description: user not found
+        "500": 
+          $ref: "#/components/responses/InternalServerError"
+          
